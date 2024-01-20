@@ -31,6 +31,25 @@ ipcMain.on('ipc-example', async (event, arg) => {
   event.reply('ipc-example', msgTemplate('pong'));
 });
 
+// Read a file in the user data folder - used to read the JSON file
+ipcMain.handle('read-user-data-json', async (event) => {
+  const fs = require('fs');
+  const fullPath = `${app.getPath('userData')}/data.json`;
+
+  if (fs.existsSync(fullPath)) {
+    return JSON.parse(fs.readFileSync(fullPath, 'utf8'));
+  }
+
+  // If it doesn't exist return blank object
+
+  const blankBehaviourObject = {
+    vices: [],
+    habits: [],
+  };
+
+  return blankBehaviourObject;
+});
+
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
   sourceMapSupport.install();
@@ -75,9 +94,8 @@ const createWindow = async () => {
     height: 728,
     icon: getAssetPath('icon.png'),
     webPreferences: {
-      preload: app.isPackaged
-        ? path.join(__dirname, 'preload.js')
-        : path.join(__dirname, '../../.erb/dll/preload.js'),
+      contextIsolation: false,
+      nodeIntegration: true,
     },
   });
 
